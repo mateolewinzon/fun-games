@@ -28,7 +28,7 @@ export default function CellComponent({
 }) {
   return (
     <button
-      className="w-[200px] h-[200px] border flex justify-center items-center"
+      className="w-[30vw] sm:w-[20vw] md:w-[15vw] lg:w-[10vw] aspect-square border flex justify-center items-center"
       disabled={disabled}
       onClick={() => handleCellCkick()}
     >
