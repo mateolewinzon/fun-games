@@ -1,5 +1,5 @@
 import { twMerge } from "tailwind-merge";
-import { Board, Line } from "../types";
+import type { Board, Line } from "../types";
 
 export default function Board({
   board,
