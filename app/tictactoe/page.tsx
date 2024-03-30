@@ -29,7 +29,9 @@ export default function Play() {
             </button>
           </span>
         ) : (
-          <span className="text-xl">It's {turn.toUpperCase()}'s turn.</span>
+          <span className="text-xl">
+            It&apos;s {turn.toUpperCase()}&apos;s turn.
+          </span>
         )}
         <Board
           winningLine={winningLine}
