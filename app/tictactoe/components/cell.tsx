@@ -1,12 +1,15 @@
-import { BiCircle, BiX } from "react-icons/bi";
+import { BiCircle } from "react-icons/bi";
 import { FiX } from "react-icons/fi";
+import { Cell } from "../types";
 
-function drawCellIcon(cell: Cell) {
+function drawCellIcon(cell: Cell, winningCell: boolean) {
+  const className = winningCell ? "text-green-500" : "text-white";
+
   switch (cell) {
     case "o":
-      return <BiCircle color="white" size={200} />;
+      return <BiCircle className={className} size={200} />;
     case "x":
-      return <FiX color="white" size={200} />;
+      return <FiX className={className} size={200} />;
     default:
       return null;
   }
@@ -16,10 +19,12 @@ export default function Cell({
   cell,
   handleCellCkick,
   disabled,
+  winningCell,
 }: {
   cell: Cell;
   handleCellCkick: () => void;
   disabled: boolean;
+  winningCell: boolean;
 }) {
   return (
     <button
@@ -27,7 +32,7 @@ export default function Cell({
       disabled={disabled}
       onClick={() => handleCellCkick()}
     >
-      {drawCellIcon(cell)}
+      {drawCellIcon(cell, winningCell)}
     </button>
   );
 }

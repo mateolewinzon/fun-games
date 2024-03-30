@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
+import { Board, Cell, Line } from "./types";
 
-export default function useGame() {
+export default function useTicTacToe() {
   const emptyBoard: Board = Array(3)
     .fill("")
     .map(() => Array(3).fill(""));
@@ -11,6 +12,7 @@ export default function useGame() {
   const [turn, setTurn] = useState<Cell>(x);
   const [board, setBoard] = useState<Board>(emptyBoard);
   const [winner, setWinner] = useState<Cell | null>(null);
+  const [winningLine, setWinningLine] = useState<Line | null>(null);
 
   useEffect(() => {
     function checkWin() {
@@ -23,6 +25,11 @@ export default function useGame() {
           const isWinningRow = board[i].every((cell) => cell === firstCell);
 
           if (isWinningRow) {
+            setWinningLine([
+              [i, 0],
+              [i, 1],
+              [i, 2],
+            ]);
             setWinner(firstCell);
           }
         }
@@ -40,6 +47,11 @@ export default function useGame() {
             topCell === middleCell && middleCell === bottomCell;
 
           if (isWinningColumn) {
+            setWinningLine([
+              [0, i],
+              [1, i],
+              [2, i],
+            ]);
             setWinner(topCell);
           }
         }
@@ -53,6 +65,11 @@ export default function useGame() {
           if (topCorner === center) {
             const bottomCorner = board[2][2 - i];
             if (bottomCorner === center) {
+              setWinningLine([
+                [0, i],
+                [1, 1],
+                [2, 2 - i],
+              ]);
               setWinner(center);
             }
           }
@@ -72,15 +89,22 @@ export default function useGame() {
     setTurn((prevTurn) => (prevTurn === x ? o : x));
   };
 
-  const disableCell = (cell: Cell) => cell !== "";
+  const disableCell = (cell: Cell) => Boolean(winner) || cell !== "";
+
+  const restartGame = () => {
+    setBoard(emptyBoard);
+    setWinner(null);
+    setWinningLine(null);
+    setTurn(x);
+  };
 
   return {
     turn,
-    setTurn,
     board,
-    setBoard,
     handleCellClick,
     disableCell,
     winner,
+    winningLine,
+    restartGame,
   };
 }
