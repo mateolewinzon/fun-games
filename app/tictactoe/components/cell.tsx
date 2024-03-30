@@ -15,7 +15,7 @@ function drawCellIcon(cell: Cell, winningCell: boolean) {
   }
 }
 
-export default function Cell({
+export default function CellComponent({
   cell,
   handleCellCkick,
   disabled,
