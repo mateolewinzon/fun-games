@@ -20,7 +20,10 @@ export default function Play() {
       <div className="flex flex-col gap-5">
         {winner ? (
           <span className="flex text-xl justify-between">
-            {winner.toUpperCase()} wins! Congratulations.👏
+            <span>
+              <span className="font-bold">{winner.toUpperCase()}</span> wins!
+              Congratulations.👏
+            </span>
             <button
               className="font-semibold hover:font-bold text-blue-500"
               onClick={() => restartGame()}
@@ -30,7 +33,8 @@ export default function Play() {
           </span>
         ) : (
           <span className="text-xl">
-            It&apos;s {turn.toUpperCase()}&apos;s turn.
+            It&apos;s <span className="font-bold">{turn.toUpperCase()}</span>
+            &apos;s turn.
           </span>
         )}
         <Board
