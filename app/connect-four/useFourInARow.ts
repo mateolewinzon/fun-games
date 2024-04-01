@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Board, Line, Player } from "./types";
+import type { Board, Line, Player } from "./types";
 
 export default function useConnectFour() {
   const emptyBoard: Board = Array(6)
