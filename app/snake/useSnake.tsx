@@ -1,92 +1,177 @@
 import React, { useEffect, useState, useRef } from "react";
-import type { Snake, Food, Direction } from "./types";
+import type { Snake, Food, Direction, Status } from "./types";
 
 export default function useSnake() {
-  const [{ snake, food, level }, setGameData] = useState<{
+  const [{ snake, food, level, status }, setGameData] = useState<{
     snake: Snake;
     food: Food;
     level: number;
+    status: Status;
   }>({
     snake: [[0, 10]],
     food: [10, 10],
     level: 0,
+    status: "playing",
   });
 
   const direction = useRef<Direction>("right"); //I dont want the lifecycle to be dependant on the direction.
-  const timeSlice = 1000 * 0.9 ** level;
+  const hasChangedDirection = useRef<Boolean>(false);
+  const timeSlice = 1000 * 0.95 ** level;
+
+  const checkCollision = (snake: Snake) => {
+    const head = snake[0];
+
+    if (head[0] < 0 || head[0] >= 20 || head[1] < 0 || head[1] >= 20) {
+      return true;
+    }
+
+    for (const segment of snake.slice(1)) {
+      if (segment[0] === head[0] && segment[1] === head[1]) {
+        return true;
+      }
+    }
+  };
+
+  const getNewHead = (head: [number, number]) => {
+    switch (direction.current) {
+      case "right":
+        return [head[0] + 1, head[1]];
+      case "left":
+        return [head[0] - 1, head[1]];
+      case "up":
+        return [head[0], head[1] - 1];
+      default:
+        return [head[0], head[1] + 1];
+    }
+  };
+
+  const restartGame = () => {
+    setGameData({
+      snake: [[0, 10]],
+      food: [10, 10],
+      level: 0,
+      status: "playing",
+    });
+    direction.current = "right";
+  };
+
+  const togglePause = () => {
+    setGameData((currentState) => ({
+      ...currentState,
+      status: currentState.status === "paused" ? "playing" : "paused",
+    }));
+  };
 
   useEffect(() => {
-    const handleDirectionChange = (event: KeyboardEvent) => {
+    const handleKeyPress = (event: KeyboardEvent) => {
+      if (hasChangedDirection.current) {
+        return;
+      }
+
       switch (event.key) {
         case "ArrowUp":
-          direction.current = "up";
+          if (direction.current !== "down") {
+            direction.current = "up";
+            hasChangedDirection.current = true;
+            break;
+          }
+
           break;
         case "ArrowDown":
-          direction.current = "down";
+          if (direction.current !== "up") {
+            direction.current = "down";
+            hasChangedDirection.current = true;
+
+            break;
+          }
+
           break;
         case "ArrowLeft":
-          direction.current = "left";
+          if (direction.current !== "right") {
+            direction.current = "left";
+            hasChangedDirection.current = true;
+            break;
+          }
+
           break;
         case "ArrowRight":
-          direction.current = "right";
-          break;
+          if (direction.current !== "left") {
+            direction.current = "right";
+            hasChangedDirection.current = true;
+            break;
+          }
+
         case "default":
           break;
       }
     };
 
-    document.addEventListener("keydown", handleDirectionChange, true);
+    document.addEventListener("keydown", handleKeyPress, true);
 
     return () => {
-      document.removeEventListener("keydown", handleDirectionChange, false);
+      document.removeEventListener("keydown", handleKeyPress, false);
     };
   }, []);
 
   useEffect(() => {
     const interval = setInterval(() => {
-      function getNewHead(head: [number, number]) {
-        switch (direction.current) {
-          case "right":
-            return [head[0] + 1, head[1]];
-          case "left":
-            return [head[0] - 1, head[1]];
-          case "up":
-            return [head[0], head[1] - 1];
-          default:
-            return [head[0], head[1] + 1];
+      setGameData((currentState) => {
+        if (currentState.status !== "playing") {
+          return currentState;
         }
-      }
 
-      setGameData(({ snake: prevSnake, food: prevFood, level: prevLevel }) => {
-        const newSnake = [...prevSnake];
-        const newHead = getNewHead(prevSnake[0]);
+        const newSnake = [...currentState.snake];
+        const newHead = getNewHead(newSnake[0]);
         newSnake.unshift(newHead as [number, number]);
 
-        const canEat = newHead[0] === prevFood[0] && newHead[1] === prevFood[1];
+        const collision = checkCollision(newSnake);
 
-        let newFood = prevFood;
-        let newLevel = prevLevel;
+        if (collision) {
+          clearInterval(interval);
+          return {
+            ...currentState,
+            status: "lost",
+          };
+        }
+
+        const canEat =
+          newHead[0] === currentState.food[0] &&
+          newHead[1] === currentState.food[1];
+
+        let newFood = currentState.food;
+        let newLevel = currentState.level;
 
         if (canEat) {
           newFood = [
             Math.floor(Math.random() * 20),
             Math.floor(Math.random() * 20),
           ];
-          newLevel = prevLevel + 1;
+          newLevel = currentState.level + 1;
         } else {
           newSnake.pop();
         }
 
-        return { snake: newSnake, food: newFood, level: newLevel };
+        hasChangedDirection.current = false;
+
+        return {
+          snake: newSnake,
+          food: newFood,
+          level: newLevel,
+          status: "playing",
+        };
       });
     }, timeSlice);
 
     return () => clearInterval(interval);
-  }, [timeSlice]);
+  }, [timeSlice, status]);
 
   return {
     snake,
     direction,
     food,
+    score: snake.length,
+    status,
+    restartGame,
+    togglePause,
   };
 }

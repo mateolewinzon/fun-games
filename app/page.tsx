@@ -22,6 +22,7 @@ export default function Home() {
       <ul className="flex flex-col gap-4">
         <GameLink path="/connect-four" name="Connect Four" />
         <GameLink path="/tic-tac-toe" name="Tic Tac Toe" />
+        <GameLink path="/snake" name="Snake" />
       </ul>
     </div>
   );
