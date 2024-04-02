@@ -1,4 +1,3 @@
-import { Ref } from "react";
 import { Direction, Food, Snake, Status } from "./types";
 
 export const initialGameState: {
