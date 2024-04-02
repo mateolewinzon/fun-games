@@ -15,6 +15,83 @@ export const initialGameState: {
 
 export const getTimeInterval = (level: number) => 1000 * 0.95 ** level;
 
+export const checkStoppedGame = (status: Status): Boolean =>
+  status !== "playing";
+
+export const getNewDirection = (
+  keyPressed: string,
+  currentDirection: Direction,
+  hasChangedDirectionInCurrentTimeSlice: Boolean
+) => {
+  let newDirection = currentDirection;
+  let hasChanged = false;
+
+  if (hasChangedDirectionInCurrentTimeSlice) {
+    return { newDirection, hasChanged };
+  }
+
+  switch (keyPressed) {
+    case "ArrowUp":
+      if (currentDirection !== "down") {
+        newDirection = "up";
+        hasChanged = true;
+      }
+
+      break;
+    case "ArrowDown":
+      if (currentDirection !== "up") {
+        newDirection = "down";
+        hasChanged = true;
+      }
+
+      break;
+    case "ArrowLeft":
+      if (currentDirection !== "right") {
+        newDirection = "left";
+        hasChanged = true;
+      }
+
+      break;
+    case "ArrowRight":
+      if (currentDirection !== "left") {
+        newDirection = "right";
+        hasChanged = true;
+      }
+
+    case "default":
+      break;
+  }
+
+  return { newDirection, hasChanged };
+};
+
+const getNextHead = (
+  head: [number, number],
+  direction: Direction
+): [number, number] => {
+  switch (direction) {
+    case "right":
+      return [head[0] + 1, head[1]];
+    case "left":
+      return [head[0] - 1, head[1]];
+    case "up":
+      return [head[0], head[1] - 1];
+    default:
+      return [head[0], head[1] + 1];
+  }
+};
+
+export const getSupposedNextSnake = (
+  currentSnake: Snake,
+  direction: Direction
+): Snake => {
+  const newSnake = [...currentSnake];
+  const newHead = getNextHead(newSnake[0], direction);
+  newSnake.unshift(newHead as [number, number]);
+
+  return newSnake;
+};
+
 const collideWithWalls = (snake: Snake, mapSize: number): Boolean => {
   const head = snake[0];
 
@@ -68,81 +145,4 @@ export const checkEating = (
   }
 
   return { newFood, newLevel, newSnake };
-};
-
-const getNextHead = (
-  head: [number, number],
-  direction: Direction
-): [number, number] => {
-  switch (direction) {
-    case "right":
-      return [head[0] + 1, head[1]];
-    case "left":
-      return [head[0] - 1, head[1]];
-    case "up":
-      return [head[0], head[1] - 1];
-    default:
-      return [head[0], head[1] + 1];
-  }
-};
-
-export const getNextSnake = (
-  currentSnake: Snake,
-  direction: Direction
-): Snake => {
-  const newSnake = [...currentSnake];
-  const newHead = getNextHead(newSnake[0], direction);
-  newSnake.unshift(newHead as [number, number]);
-
-  return newSnake;
-};
-
-export const checkStoppedGame = (status: Status): Boolean =>
-  status !== "playing";
-
-export const getNewDirection = (
-  keyPressed: string,
-  currentDirection: Direction,
-  hasChangedDirectionInCurrentTimeSlice: Boolean
-) => {
-  let newDirection = currentDirection;
-  let hasChanged = false;
-
-  if (hasChangedDirectionInCurrentTimeSlice) {
-    return { newDirection, hasChanged };
-  }
-
-  switch (keyPressed) {
-    case "ArrowUp":
-      if (currentDirection !== "down") {
-        newDirection = "up";
-        hasChanged = true;
-      }
-
-      break;
-    case "ArrowDown":
-      if (currentDirection !== "up") {
-        newDirection = "down";
-        hasChanged = true;
-      }
-
-      break;
-    case "ArrowLeft":
-      if (currentDirection !== "right") {
-        newDirection = "left";
-        hasChanged = true;
-      }
-
-      break;
-    case "ArrowRight":
-      if (currentDirection !== "left") {
-        newDirection = "right";
-        hasChanged = true;
-      }
-
-    case "default":
-      break;
-  }
-
-  return { newDirection, hasChanged };
 };

@@ -4,10 +4,10 @@ import {
   checkCollision,
   checkEating,
   checkStoppedGame,
-  getNextSnake,
   getTimeInterval,
   initialGameState,
   getNewDirection,
+  getSupposedNextSnake,
 } from "./snake";
 
 export default function useSnake(mapSize: number = 20) {
@@ -66,7 +66,7 @@ export default function useSnake(mapSize: number = 20) {
           return currentState;
         }
 
-        const supposedNextSnake = getNextSnake(
+        const supposedNextSnake = getSupposedNextSnake(
           currentState.snake,
           direction.current
         );
