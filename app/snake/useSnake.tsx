@@ -18,7 +18,7 @@ export default function useSnake(mapSize: number = 20) {
     status: Status;
   }>(initialGameState);
 
-  const direction = useRef<Direction>("right"); //I don't want the lifecycle to be dependant on the direction.
+  const direction = useRef<Direction>("right"); //I don't want the lifecycle to be dependant on the chosen next direction.
   const hasChangedDirection = useRef<Boolean>(false); //auxiliary value to prevent multiple direction changes in the same time slice.
   const timeSlice = getTimeInterval(level);
 
