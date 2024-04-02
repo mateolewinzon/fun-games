@@ -1,57 +1,29 @@
 import React, { useEffect, useState, useRef } from "react";
 import type { Snake, Food, Direction, Status } from "./types";
+import {
+  checkCollision,
+  checkEating,
+  checkStoppedGame,
+  getNextSnake,
+  getTimeInterval,
+  initialGameState,
+  getNewDirection,
+} from "./snake";
 
-export default function useSnake() {
+export default function useSnake(mapSize: number = 20) {
   const [{ snake, food, level, status }, setGameData] = useState<{
     snake: Snake;
     food: Food;
     level: number;
     status: Status;
-  }>({
-    snake: [[0, 10]],
-    food: [10, 10],
-    level: 0,
-    status: "playing",
-  });
+  }>(initialGameState);
 
-  const direction = useRef<Direction>("right"); //I dont want the lifecycle to be dependant on the direction.
-  const hasChangedDirection = useRef<Boolean>(false);
-  const timeSlice = 1000 * 0.95 ** level;
-
-  const checkCollision = (snake: Snake) => {
-    const head = snake[0];
-
-    if (head[0] < 0 || head[0] >= 20 || head[1] < 0 || head[1] >= 20) {
-      return true;
-    }
-
-    for (const segment of snake.slice(1)) {
-      if (segment[0] === head[0] && segment[1] === head[1]) {
-        return true;
-      }
-    }
-  };
-
-  const getNewHead = (head: [number, number]) => {
-    switch (direction.current) {
-      case "right":
-        return [head[0] + 1, head[1]];
-      case "left":
-        return [head[0] - 1, head[1]];
-      case "up":
-        return [head[0], head[1] - 1];
-      default:
-        return [head[0], head[1] + 1];
-    }
-  };
+  const direction = useRef<Direction>("right"); //I don't want the lifecycle to be dependant on the direction.
+  const hasChangedDirection = useRef<Boolean>(false); //auxiliary value to prevent multiple direction changes in the same time slice.
+  const timeSlice = getTimeInterval(level);
 
   const restartGame = () => {
-    setGameData({
-      snake: [[0, 10]],
-      food: [10, 10],
-      level: 0,
-      status: "playing",
-    });
+    setGameData(initialGameState);
     direction.current = "right";
   };
 
@@ -63,48 +35,18 @@ export default function useSnake() {
   };
 
   useEffect(() => {
-    const handleKeyPress = (event: KeyboardEvent) => {
-      if (hasChangedDirection.current) {
-        return;
+    function handleKeyPress(event: KeyboardEvent) {
+      const { newDirection, hasChanged } = getNewDirection(
+        event.key,
+        direction.current,
+        hasChangedDirection.current
+      );
+
+      if (hasChanged) {
+        direction.current = newDirection;
+        hasChangedDirection.current = true;
       }
-
-      switch (event.key) {
-        case "ArrowUp":
-          if (direction.current !== "down") {
-            direction.current = "up";
-            hasChangedDirection.current = true;
-            break;
-          }
-
-          break;
-        case "ArrowDown":
-          if (direction.current !== "up") {
-            direction.current = "down";
-            hasChangedDirection.current = true;
-
-            break;
-          }
-
-          break;
-        case "ArrowLeft":
-          if (direction.current !== "right") {
-            direction.current = "left";
-            hasChangedDirection.current = true;
-            break;
-          }
-
-          break;
-        case "ArrowRight":
-          if (direction.current !== "left") {
-            direction.current = "right";
-            hasChangedDirection.current = true;
-            break;
-          }
-
-        case "default":
-          break;
-      }
-    };
+    }
 
     document.addEventListener("keydown", handleKeyPress, true);
 
@@ -116,40 +58,35 @@ export default function useSnake() {
   useEffect(() => {
     const interval = setInterval(() => {
       setGameData((currentState) => {
-        if (currentState.status !== "playing") {
+        const isStopped = checkStoppedGame(currentState.status);
+
+        if (isStopped) {
+          clearInterval(interval);
+
           return currentState;
         }
 
-        const newSnake = [...currentState.snake];
-        const newHead = getNewHead(newSnake[0]);
-        newSnake.unshift(newHead as [number, number]);
+        const supposedNextSnake = getNextSnake(
+          currentState.snake,
+          direction.current
+        );
 
-        const collision = checkCollision(newSnake);
+        const collision = checkCollision(supposedNextSnake, mapSize);
 
         if (collision) {
           clearInterval(interval);
+
           return {
             ...currentState,
             status: "lost",
           };
         }
 
-        const canEat =
-          newHead[0] === currentState.food[0] &&
-          newHead[1] === currentState.food[1];
-
-        let newFood = currentState.food;
-        let newLevel = currentState.level;
-
-        if (canEat) {
-          newFood = [
-            Math.floor(Math.random() * 20),
-            Math.floor(Math.random() * 20),
-          ];
-          newLevel = currentState.level + 1;
-        } else {
-          newSnake.pop();
-        }
+        const { newFood, newSnake, newLevel } = checkEating(
+          currentState.level,
+          currentState.food,
+          supposedNextSnake
+        );
 
         hasChangedDirection.current = false;
 
